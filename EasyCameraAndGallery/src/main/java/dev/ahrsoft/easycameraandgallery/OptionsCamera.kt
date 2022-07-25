@@ -8,14 +8,14 @@ import java.io.Serializable
 data class OptionsCamera(
     var count : Int = 1,
     var path : String = "EasyCamera/",
-    var flash: Flash = Flash.Disabled,
+    var flash: Flash = Flash.Auto,
     var isFrontFacing : Boolean = false,
     var ratio : Ratio = Ratio.RATIO_AUTO
 ) : Serializable
 
 @Parcelize
 enum class Flash : Parcelable {
-    Disabled, On, Off, Auto
+    On, Off, Auto
 }
 
 @Parcelize

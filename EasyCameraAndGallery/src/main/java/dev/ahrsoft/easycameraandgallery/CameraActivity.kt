@@ -52,6 +52,7 @@ class CameraActivity : AppCompatActivity() {
 
     private var cameraProvider: ProcessCameraProvider? = null
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
+    private var flashMode: Int = ImageCapture.FLASH_MODE_OFF
     private var preview: Preview? = null
     private var imageCapture: ImageCapture? = null
     private lateinit var outputDirectory: File
@@ -67,15 +68,52 @@ class CameraActivity : AppCompatActivity() {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        if (allPermissionsGranted()) {
+            startCamera()
+            getAllImageFromGallery()
+        } else {
+            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+        }
+
         initUI()
     }
 
     private fun initUI() {
         optionsCamera  = (intent.getSerializableExtra("options") as? OptionsCamera)!!
+        flashModeOptions(optionsCamera.flash)
+
         with(binding) {
             cameraCaptureButton.setOnClickListener {
                 takePhoto()
             }
+            ibFrontCamera.setOnClickListener {
+                if (CameraSelector.LENS_FACING_FRONT == lensFacing){
+                    lensFacing =  CameraSelector.LENS_FACING_BACK
+                    enableFrontCamera(false)
+                }else{
+                    lensFacing = CameraSelector.LENS_FACING_FRONT
+                    enableFrontCamera(true)
+                }
+                bindCameraUseCases()
+            }
+            ibFlashCamera.setOnClickListener {
+                when(flashMode){
+                    ImageCapture.FLASH_MODE_OFF ->{
+                        flashMode = ImageCapture.FLASH_MODE_ON
+                        caseFlashMode()
+                    }
+                    ImageCapture.FLASH_MODE_ON -> {
+                        flashMode = ImageCapture.FLASH_MODE_AUTO
+                        caseFlashMode()
+                    }
+                    ImageCapture.FLASH_MODE_AUTO -> {
+                        flashMode = ImageCapture.FLASH_MODE_OFF
+                        caseFlashMode()
+                    }
+                }
+                bindCameraUseCases()
+            }
+
             fabSendData.setOnClickListener {
                 val list = imageSelected.map {
                     it.image
@@ -83,11 +121,28 @@ class CameraActivity : AppCompatActivity() {
                 getListPath(list as ArrayList<String>)
             }
         }
-        if (allPermissionsGranted()) {
-            startCamera()
-            getAllImageFromGallery()
-        } else {
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+    }
+
+    private fun caseFlashMode(){
+        when(flashMode){
+            ImageCapture.FLASH_MODE_OFF ->{
+                binding.ibFlashCamera.setImageResource(R.drawable.ic_baseline_flash_off_24)
+            }
+            ImageCapture.FLASH_MODE_ON -> {
+                binding.ibFlashCamera.setImageResource(R.drawable.ic_baseline_flash_on_24)
+
+            }
+            ImageCapture.FLASH_MODE_AUTO -> {
+                binding.ibFlashCamera.setImageResource(R.drawable.ic_baseline_flash_auto_24)
+            }
+        }
+    }
+
+    private fun enableFrontCamera(isFront : Boolean) {
+        if (isFront){
+            binding.ibFrontCamera.setImageResource(R.drawable.ic_baseline_camera_rear_24)
+        }else{
+            binding.ibFrontCamera.setImageResource(R.drawable.ic_baseline_camera_front_24)
         }
     }
 
@@ -95,12 +150,16 @@ class CameraActivity : AppCompatActivity() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
             cameraProvider = cameraProviderFuture.get()
+             if (optionsCamera.isFrontFacing){
+                 enableFrontCamera(true)
+                 lensFacing = CameraSelector.LENS_FACING_FRONT
+                 hasBackCamera()
 
-            lensFacing = when {
-                hasBackCamera() -> CameraSelector.LENS_FACING_BACK
-                hasFrontCamera() -> CameraSelector.LENS_FACING_FRONT
-                else -> throw IllegalStateException("No existen dispositivo de captura disponibles...")
-            }
+            }else{
+                 enableFrontCamera(false)
+                 lensFacing = CameraSelector.LENS_FACING_BACK
+                 hasFrontCamera()
+             }
             bindCameraUseCases()
         }, ContextCompat.getMainExecutor(this))
     }
@@ -313,6 +372,21 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    private fun flashModeOptions(flash: Flash) {
+        flashMode = when(flash){
+            Flash.On -> {
+                ImageCapture.FLASH_MODE_ON
+            }
+            Flash.Off -> {
+                ImageCapture.FLASH_MODE_OFF
+            }
+            Flash.Auto -> {
+                ImageCapture.FLASH_MODE_AUTO
+            }
+        }
+        caseFlashMode()
+    }
+
 
     private fun getScreenWidth(): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -374,6 +448,7 @@ class CameraActivity : AppCompatActivity() {
                       .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
                       .setTargetAspectRatio(aspectRadio(optionsCamera.ratio))
                       .setTargetRotation(ROTATION_0)
+                      .setFlashMode(flashMode)
                       .build()
                   cameraProvider.unbindAll()
 
