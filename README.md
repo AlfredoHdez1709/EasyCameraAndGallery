@@ -11,7 +11,7 @@ maven { url 'https://jitpack.io' }
 ```
 **Step 2.** Add the dependency
 ```gradle
-implementation 'com.github.AlfredoHdez1709:EasyCameraAndGallery:0.5-beta'
+implementation 'com.github.AlfredoHdez1709:EasyCameraAndGallery:0.7-beta'
 ```
 
 ## Basic implementation
