@@ -14,8 +14,8 @@ class GalleryAdapter(private val context : Context, private val imageList : List
             with(binding){
                 Glide.with(context)
                     .load(imageModel.image)
-                    .into(image)
-                checkBox.isChecked = imageModel.isSelected
+                    .into(imagePickerCamera)
+                checkBoxPickerCamera.isChecked = imageModel.isSelected
             }
         }
     }
