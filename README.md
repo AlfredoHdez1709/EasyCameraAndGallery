@@ -1,4 +1,5 @@
-# EasyCameraAndGallery 0.5 beta version
+# EasyCameraAndGallery 0.5 beta version [![](https://jitpack.io/v/AlfredoHdez1709/EasyCameraAndGallery.svg)](https://jitpack.io/#AlfredoHdez1709/EasyCameraAndGallery)
+
 
 |      Get Permission       |        Home Camera        |       Select photo        |        Send result        |
 | :-----------------------: | :-----------------------: | :-----------------------: | :-----------------------: |
@@ -11,7 +12,7 @@ maven { url 'https://jitpack.io' }
 ```
 **Step 2.** Add the dependency
 ```gradle
-implementation 'com.github.AlfredoHdez1709:EasyCameraAndGallery:0.7-beta'
+implementation 'com.github.AlfredoHdez1709:EasyCameraAndGallery:{version}'
 ```
 
 ## Basic implementation
