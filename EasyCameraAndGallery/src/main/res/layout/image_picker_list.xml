@@ -7,7 +7,7 @@
     android:layout_margin="4dp">
 
     <ImageView
-        android:id="@+id/image"
+        android:id="@+id/imagePickerCamera"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:scaleType="centerCrop"
@@ -19,12 +19,12 @@
         tools:srcCompat="@tools:sample/avatars" />
 
     <CheckBox
-        android:id="@+id/checkBox"
+        android:id="@+id/checkBoxPickerCamera"
         android:layout_width="20dp"
         android:layout_height="20dp"
         android:button="@drawable/custom_checkbox"
         android:clickable="false"
-        app:layout_constraintTop_toTopOf="@+id/image"
-        app:layout_constraintEnd_toEndOf="@id/image"/>
+        app:layout_constraintTop_toTopOf="@+id/imagePickerCamera"
+        app:layout_constraintEnd_toEndOf="@id/imagePickerCamera"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

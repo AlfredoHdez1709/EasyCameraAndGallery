@@ -89,10 +89,10 @@ class CameraActivity : AppCompatActivity() {
         flashModeOptions(optionsCamera.flash)
 
         with(binding) {
-            galleryCaptureButton.setOnClickListener {
+            galleryCaptureButtonCamera.setOnClickListener {
                 getPickImageIntent()
             }
-            cameraCaptureButton.setOnClickListener {
+            cameraCaptureButtonCamera.setOnClickListener {
                 takePhoto()
             }
             ibFrontCamera.setOnClickListener {
@@ -241,12 +241,12 @@ class CameraActivity : AppCompatActivity() {
     private fun hideUI(isCompleteSelect : Boolean){
         if (isCompleteSelect){
             binding.fabSendData.visibility = View.VISIBLE
-            binding.cameraCaptureButton.visibility = View.GONE
-            binding.galleryCaptureButton.visibility = View.GONE
+            binding.cameraCaptureButtonCamera.visibility = View.GONE
+            binding.galleryCaptureButtonCamera.visibility = View.GONE
         }else{
             binding.fabSendData.visibility = View.GONE
-            binding.cameraCaptureButton.visibility = View.VISIBLE
-            binding.galleryCaptureButton.visibility = View.VISIBLE
+            binding.cameraCaptureButtonCamera.visibility = View.VISIBLE
+            binding.galleryCaptureButtonCamera.visibility = View.VISIBLE
         }
     }
 
@@ -272,8 +272,8 @@ class CameraActivity : AppCompatActivity() {
 
     private fun setImageList(){
         adapter = GalleryAdapter(this,imageList)
-        binding.rvGallery.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false)
-        binding.rvGallery.adapter = adapter
+        binding.rvGalleryCamera.layoutManager = LinearLayoutManager(this,LinearLayoutManager.HORIZONTAL, false)
+        binding.rvGalleryCamera.adapter = adapter
         adapter.setOnItemClickListener(object : GalleryAdapter.OnItemClickListener{
             override fun onItemClick(position: Int) {
                 val imageModel = imageList[position]
@@ -530,7 +530,7 @@ class CameraActivity : AppCompatActivity() {
 
                   try {
                       cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
-                      preview?.setSurfaceProvider(binding.viewFinder.surfaceProvider)
+                      preview?.setSurfaceProvider(binding.viewFinderCamera.surfaceProvider)
                   } catch (exc: Exception) {
                       throw Exception("Use case fallo", exc)
                   }
