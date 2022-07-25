@@ -1,8 +1,8 @@
 # EasyCameraAndGallery 0.5.0 beta version
 
-|        Home Camera        |       Select photo        |        Send result        |
-| :-----------------------: | :-----------------------: | :-----------------------: |
-| ![](media/image_001.jpeg) | ![](media/image_002.jpeg) | ![](media/image_003.jpeg) |
+|      Get Permission       |        Home Camera        |       Select photo        |        Send result        |
+| :-----------------------: | :-----------------------: | :-----------------------: | :-----------------------: |
+| ![](media/image_004.jpeg) | ![](media/image_001.jpeg) | ![](media/image_002.jpeg) | ![](media/image_003.jpeg) |
 
 ## Basic implementation
 
