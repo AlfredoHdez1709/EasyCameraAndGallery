@@ -22,7 +22,8 @@ class MainActivity : AppCompatActivity() {
         val optionsCamera = OptionsCamera(
             ratio = Ratio.RATIO_16_9,
             path = "Evidences",
-            flash = Flash.Off
+            flash = Flash.Off,
+            count = 2
         )
 
         binding.textInput.setOnClickListener {

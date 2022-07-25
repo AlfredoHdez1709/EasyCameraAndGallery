@@ -2,4 +2,5 @@
 <resources>
     <dimen name="round_button_large">60dp</dimen>
     <dimen name="shutter_button_margin">25dp</dimen>
+    <dimen name="round_button_medium">40dp</dimen>
 </resources>

@@ -1,6 +1,7 @@
 package dev.ahrsoft.easycameraandgallery
 
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
@@ -13,6 +14,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
+import android.provider.DocumentsContract
 import android.provider.MediaStore
 import android.util.DisplayMetrics
 import android.util.Log
@@ -21,6 +23,8 @@ import android.view.View
 import android.view.WindowInsets
 import android.webkit.MimeTypeMap
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.camera.core.*
 import androidx.camera.lifecycle.ProcessCameraProvider
@@ -62,6 +66,8 @@ class CameraActivity : AppCompatActivity() {
     private val imageList = arrayListOf<ImageModel>()
     private val imageSelected = arrayListOf<ImageModel>()
     private lateinit var adapter: GalleryAdapter
+    private lateinit var resultGallery: ActivityResultLauncher<Intent>
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,6 +89,9 @@ class CameraActivity : AppCompatActivity() {
         flashModeOptions(optionsCamera.flash)
 
         with(binding) {
+            galleryCaptureButton.setOnClickListener {
+                getPickImageIntent()
+            }
             cameraCaptureButton.setOnClickListener {
                 takePhoto()
             }
@@ -121,6 +130,31 @@ class CameraActivity : AppCompatActivity() {
                 getListPath(list as ArrayList<String>)
             }
         }
+        openCallback()
+    }
+
+    private fun openCallback() {
+        resultGallery =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                if (result.resultCode == Activity.RESULT_OK) {
+                    val data = result.data
+                    if (data != null) {
+                        if (data.clipData != null) {
+                            val mClipData = data.clipData
+                            for (i in 0 until mClipData!!.itemCount) {
+                                val item = mClipData.getItemAt(i)
+                                val uri = item.uri
+                                getPathFromURI(uri)
+                            }
+                        } else if (data.data != null) {
+                            val uri = data.data
+                            if (uri != null) {
+                               getPathFromURI(uri)
+                            }
+                        }
+                    }
+                }
+            }
     }
 
     private fun caseFlashMode(){
@@ -146,6 +180,46 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    private fun getPathFromURI(uri: Uri) {
+        var realPath = String()
+        uri.path?.let { path ->
+            val databaseUri: Uri
+            val selection: String?
+            val selectionArgs: Array<String>?
+            if (path.contains("/document/image:")) {
+                databaseUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                selection = "_id=?"
+                selectionArgs = arrayOf(DocumentsContract.getDocumentId(uri).split(":")[1])
+            } else {
+                databaseUri = uri
+                selection = null
+                selectionArgs = null
+            }
+            try {
+                val column = "_data"
+                val projection = arrayOf(column)
+                val cursor = contentResolver.query(
+                    databaseUri,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null
+                )
+                cursor?.let {
+                    if (it.moveToFirst()) {
+                        val columnIndex = cursor.getColumnIndexOrThrow(column)
+                        realPath = cursor.getString(columnIndex)
+                    }
+                    cursor.close()
+                }
+            } catch (e: Exception) {
+                println(e)
+            }
+        }
+        addImage(realPath)
+    }
+
+
     private fun startCamera() {
         val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
         cameraProviderFuture.addListener({
@@ -168,9 +242,11 @@ class CameraActivity : AppCompatActivity() {
         if (isCompleteSelect){
             binding.fabSendData.visibility = View.VISIBLE
             binding.cameraCaptureButton.visibility = View.GONE
+            binding.galleryCaptureButton.visibility = View.GONE
         }else{
             binding.fabSendData.visibility = View.GONE
             binding.cameraCaptureButton.visibility = View.VISIBLE
+            binding.galleryCaptureButton.visibility = View.VISIBLE
         }
     }
 
@@ -466,6 +542,13 @@ class CameraActivity : AppCompatActivity() {
                 File(it, optionsCamera.path).apply { mkdirs() }
             }
         return if (path.exists()) path else filesDir
+    }
+
+    fun getPickImageIntent() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "image/*"
+        intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+        resultGallery.launch(intent)
     }
 
     private fun getListPath(list: ArrayList<String>) {
