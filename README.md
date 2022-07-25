@@ -25,7 +25,7 @@ Launch the camera send as parameter the context, options and result
 EasyCamera.start(this, OptionsCamera(), resultScan)
 ```
 
-##Custom implementation
+## Custom implementation
 
 ```kotlin
 
