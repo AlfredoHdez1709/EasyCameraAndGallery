@@ -4,6 +4,16 @@
 | :-----------------------: | :-----------------------: | :-----------------------: | :-----------------------: |
 | ![](media/image_004.jpeg) | ![](media/image_001.jpeg) | ![](media/image_002.jpeg) | ![](media/image_003.jpeg) |
 
+## Install
+**Step 1.** Add it in your root build.gradle at the end of repositories:
+```gradle
+maven { url 'https://jitpack.io' }
+```
+**Step 2.** Add the dependency
+```gradle
+implementation 'com.github.AlfredoHdez1709:EasyCameraAndGallery:0.5-beta'
+```
+
 ## Basic implementation
 
 Generate call result from an activity
