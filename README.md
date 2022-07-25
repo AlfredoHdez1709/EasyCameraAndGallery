@@ -1,4 +1,4 @@
-# EasyCameraAndGallery 0.5 beta version [![](https://jitpack.io/v/AlfredoHdez1709/EasyCameraAndGallery.svg)](https://jitpack.io/#AlfredoHdez1709/EasyCameraAndGallery)
+# EasyCameraAndGallery 0.5 beta version 
 
 
 |      Get Permission       |        Home Camera        |       Select photo        |        Send result        |
@@ -6,6 +6,8 @@
 | ![](media/image_004.jpeg) | ![](media/image_001.jpeg) | ![](media/image_002.jpeg) | ![](media/image_003.jpeg) |
 
 ## Install
+[![](https://jitpack.io/v/AlfredoHdez1709/EasyCameraAndGallery.svg)](https://jitpack.io/#AlfredoHdez1709/EasyCameraAndGallery)
+
 **Step 1.** Add it in your root build.gradle at the end of repositories:
 ```gradle
 maven { url 'https://jitpack.io' }
