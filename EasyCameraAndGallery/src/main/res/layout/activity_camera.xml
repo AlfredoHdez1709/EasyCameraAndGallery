@@ -12,7 +12,7 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginTop="16dp"
-        android:src="@drawable/ic_baseline_camera_front_24"
+        android:src="@drawable/ic_front_camera"
         android:background="@android:color/transparent"
         android:padding="10dp"
         android:elevation="9dp"
@@ -25,7 +25,7 @@
         android:layout_height="wrap_content"
         android:layout_marginTop="16dp"
         android:layout_marginEnd="16dp"
-        android:src="@drawable/ic_baseline_flash_auto_24"
+        android:src="@drawable/ic_flash_auto_camera"
         android:background="@android:color/transparent"
         android:elevation="9dp"
         android:padding="10dp"
@@ -41,7 +41,7 @@
         android:clickable="true"
         app:layout_constraintBottom_toTopOf="@+id/rv.gallery.camera"
         app:layout_constraintEnd_toEndOf="parent"
-        app:srcCompat="@drawable/ic_baseline_check_24"
+        app:srcCompat="@drawable/ic_check_select"
         android:focusable="true"
         android:visibility="gone"/>
 
@@ -64,7 +64,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         tools:itemCount="8"
-        tools:listitem="@layout/image_picker_list"
+        tools:listitem="@layout/image_picker_list_camera"
         tools:orientation="horizontal" />
 
     <ImageButton
@@ -72,7 +72,7 @@
         android:layout_width="@dimen/round_button_large"
         android:layout_height="@dimen/round_button_large"
         android:layout_marginBottom="24dp"
-        android:background="@drawable/ic_camera"
+        android:background="@drawable/ic_capture_photo_camera"
         android:contentDescription="@string/tomar_foto"
         android:elevation="9dp"
         android:scaleType="fitCenter"
@@ -86,7 +86,7 @@
         android:layout_width="@dimen/round_button_medium"
         android:layout_height="@dimen/round_button_medium"
         android:layout_marginRight="24dp"
-        android:background="@drawable/ic_baseline_image_24"
+        android:background="@drawable/ic_gallery_camera"
         android:contentDescription="@string/tomar_foto"
         android:elevation="9dp"
         android:scaleType="fitCenter"
@@ -97,7 +97,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@drawable/gradient_bottom"
+        android:background="@drawable/gradient_bottom_camera"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -107,7 +107,7 @@
     <View
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:background="@drawable/gradient_top"
+        android:background="@drawable/gradient_top_camera"
         android:elevation="8dp"
         app:layout_constraintBottom_toBottomOf="@+id/ib.front.camera"
         app:layout_constraintEnd_toEndOf="parent"

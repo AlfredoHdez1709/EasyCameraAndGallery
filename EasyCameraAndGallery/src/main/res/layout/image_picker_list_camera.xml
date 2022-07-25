@@ -22,7 +22,7 @@
         android:id="@+id/checkBoxPickerCamera"
         android:layout_width="20dp"
         android:layout_height="20dp"
-        android:button="@drawable/custom_checkbox"
+        android:button="@drawable/custom_checkbox_camera"
         android:clickable="false"
         app:layout_constraintTop_toTopOf="@+id/imagePickerCamera"
         app:layout_constraintEnd_toEndOf="@id/imagePickerCamera"/>

@@ -47,7 +47,6 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.abs
-import kotlin.math.log
 import kotlin.math.max
 import kotlin.math.min
 
@@ -160,23 +159,23 @@ class CameraActivity : AppCompatActivity() {
     private fun caseFlashMode(){
         when(flashMode){
             ImageCapture.FLASH_MODE_OFF ->{
-                binding.ibFlashCamera.setImageResource(R.drawable.ic_baseline_flash_off_24)
+                binding.ibFlashCamera.setImageResource(R.drawable.ic_flash_off_camera)
             }
             ImageCapture.FLASH_MODE_ON -> {
-                binding.ibFlashCamera.setImageResource(R.drawable.ic_baseline_flash_on_24)
+                binding.ibFlashCamera.setImageResource(R.drawable.ic_flash_on_camera)
 
             }
             ImageCapture.FLASH_MODE_AUTO -> {
-                binding.ibFlashCamera.setImageResource(R.drawable.ic_baseline_flash_auto_24)
+                binding.ibFlashCamera.setImageResource(R.drawable.ic_flash_auto_camera)
             }
         }
     }
 
     private fun enableFrontCamera(isFront : Boolean) {
         if (isFront){
-            binding.ibFrontCamera.setImageResource(R.drawable.ic_baseline_camera_rear_24)
+            binding.ibFrontCamera.setImageResource(R.drawable.ic_camera_back)
         }else{
-            binding.ibFrontCamera.setImageResource(R.drawable.ic_baseline_camera_front_24)
+            binding.ibFrontCamera.setImageResource(R.drawable.ic_front_camera)
         }
     }
 

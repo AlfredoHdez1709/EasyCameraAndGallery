@@ -5,11 +5,11 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
-import dev.ahrsoft.easycameraandgallery.databinding.ImagePickerListBinding
+import dev.ahrsoft.easycameraandgallery.databinding.ImagePickerListCameraBinding
 
 class GalleryAdapter(private val context : Context, private val imageList : List<ImageModel>) : RecyclerView.Adapter<GalleryAdapter.GalleryHolder>() {
 
-    class GalleryHolder(private val binding: ImagePickerListBinding) : RecyclerView.ViewHolder(binding.root){
+    class GalleryHolder(private val binding: ImagePickerListCameraBinding) : RecyclerView.ViewHolder(binding.root){
         fun bind(context: Context,imageModel: ImageModel){
             with(binding){
                 Glide.with(context)
@@ -23,7 +23,7 @@ class GalleryAdapter(private val context : Context, private val imageList : List
     override fun getItemCount(): Int = imageList.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryHolder {
-        val itembinding = ImagePickerListBinding.inflate(LayoutInflater.from(parent.context),parent,false)
+        val itembinding = ImagePickerListCameraBinding.inflate(LayoutInflater.from(parent.context),parent,false)
         return GalleryHolder(itembinding)
     }
 
