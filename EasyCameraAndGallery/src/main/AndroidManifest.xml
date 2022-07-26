@@ -12,7 +12,6 @@
 
     <application>
         <activity
-            android:theme="@style/Theme.MaterialComponents.NoActionBar"
             android:name=".CameraActivity"
             android:exported="false" />
     </application>

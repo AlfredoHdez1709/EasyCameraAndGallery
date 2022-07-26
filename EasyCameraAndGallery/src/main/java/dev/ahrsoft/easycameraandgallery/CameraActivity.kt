@@ -2,6 +2,7 @@ package dev.ahrsoft.easycameraandgallery
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
@@ -70,17 +71,17 @@ class CameraActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        supportActionBar?.hide()
         binding = ActivityCameraBinding.inflate(layoutInflater)
         val view = binding.root
         setContentView(view)
+        initUI()
         if (allPermissionsGranted()) {
             startCamera()
             getAllImageFromGallery()
         } else {
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
-
-        initUI()
     }
 
     private fun initUI() {
@@ -179,6 +180,7 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+
     private fun getPathFromURI(uri: Uri) {
         var realPath = String()
         uri.path?.let { path ->
@@ -249,14 +251,41 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    private val imageCollection: Uri by lazy {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.Images.Media.getContentUri(
+                MediaStore.VOLUME_EXTERNAL
+            )
+        } else {
+            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+        }
+    }
+
     private fun getAllImageFromGallery(){
         imageList.clear()
         val columns = arrayOf(MediaStore.Images.Media._ID)
         val orderBy = MediaStore.Images.Media.DATE_ADDED
-        contentResolver.query(
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI, columns,
-            null, null, "$orderBy DESC"
-        )?.use { cursor ->
+
+        val cursor : Cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val bundle = Bundle()
+            bundle.putInt(
+                ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+            )
+            if (optionsCamera.galleryCount > 0)
+                bundle.putInt(ContentResolver.QUERY_ARG_LIMIT,optionsCamera.galleryCount)
+
+            contentResolver.query(imageCollection,columns,bundle,null)!!
+        }else{
+            val filter = if (optionsCamera.galleryCount > 0) {
+                "$orderBy DESC LIMIT ${optionsCamera.galleryCount}"
+            }else{
+                orderBy
+            }
+            contentResolver.query(imageCollection,columns,null,null, filter)!!
+        }
+
+        cursor.let { cursor ->
             val idColumn = cursor.getColumnIndex(MediaStore.Images.Media._ID)
             while (cursor.moveToNext()) {
                 val id = cursor.getLong(idColumn)
@@ -265,6 +294,7 @@ class CameraActivity : AppCompatActivity() {
                 getRealPathFromUri(uri)?.let { imageList.add(imageModel) }
             }
         }
+        cursor.close()
         print(imageList)
         setImageList()
     }
@@ -385,18 +415,48 @@ class CameraActivity : AppCompatActivity() {
         }
     }
 
+    @Deprecated("delete function")
     fun getRealPathFromUri(contentUri: Uri): String? {
-        var cursor: Cursor? = null
-        return try {
-            val proj = arrayOf(MediaStore.Images.Media.DATA)
-            cursor = contentResolver.query(contentUri, proj, null, null, null)
-            val index: Int = cursor!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATA)
-            cursor.moveToFirst()
-            cursor.getString(index)
-        } finally {
-            cursor?.close()
+
+        var realPath = String()
+        contentUri.path?.let { path ->
+            val databaseUri: Uri
+            val selection: String?
+            val selectionArgs: Array<String>?
+            if (path.contains("/document/image:")) {
+                databaseUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                selection = "_id=?"
+                selectionArgs = arrayOf(DocumentsContract.getDocumentId(contentUri).split(":")[1])
+            } else {
+                databaseUri = contentUri
+                selection = null
+                selectionArgs = null
+            }
+            try {
+                val column = "_data"
+                val projection = arrayOf(column)
+                val cursor = contentResolver.query(
+                    databaseUri,
+                    projection,
+                    selection,
+                    selectionArgs,
+                    null
+                )
+                cursor?.let {
+                    if (it.moveToFirst()) {
+                        val columnIndex = cursor.getColumnIndexOrThrow(column)
+                        realPath = cursor.getString(columnIndex)
+                    }
+                    cursor.close()
+                }
+            } catch (e: Exception) {
+                println(e)
+            }
         }
+        return realPath
     }
+
+
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
         ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
