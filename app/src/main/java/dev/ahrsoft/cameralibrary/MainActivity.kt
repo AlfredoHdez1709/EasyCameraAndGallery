@@ -20,7 +20,7 @@ class MainActivity : AppCompatActivity() {
         initCall()
 
         val optionsCamera = OptionsCamera(
-            ratio = Ratio.RATIO_16_9,
+            ratio = Ratio.RATIO_AUTO,
             path = "Evidences",
             flash = Flash.Off,
             galleryCount = 4
