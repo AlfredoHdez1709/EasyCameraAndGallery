@@ -23,9 +23,8 @@ class MainActivity : AppCompatActivity() {
             ratio = Ratio.RATIO_AUTO,
             path = "Evidences",
             flash = Flash.Off,
-            galleryCount = 4
+            count = 3
         )
-
         binding.textInput.setOnClickListener {
             EasyCamera.start(this, optionsCamera = optionsCamera, resultScan = resultScan)
         }
