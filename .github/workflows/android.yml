@@ -1,0 +1,9 @@
+- name: autojitpack
+  # You may pin to the exact commit or the version.
+  # uses: badasintended/autojitpack@07e74255c2fe5f3353477da9ee7b5767a87d390c
+  uses: badasintended/autojitpack@v1
+  with:
+    # Released version
+    version: 
+    # Timeout for the request, set to -1 to disable timeout and wait for jitpack to finish building
+    timeout: # optional, default is -1
