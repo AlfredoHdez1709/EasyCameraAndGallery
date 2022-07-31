@@ -8,6 +8,8 @@
 ## Install
 [![](https://jitpack.io/v/AlfredoHdez1709/EasyCameraAndGallery.svg)](https://jitpack.io/#AlfredoHdez1709/EasyCameraAndGallery)
 
+Support `API 21` and above
+
 **Step 1.** Add it in your root build.gradle at the end of repositories:
 ```gradle
 maven { url 'https://jitpack.io' }
