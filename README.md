@@ -57,3 +57,29 @@ val optionsCamera = OptionsCamera(
 
 EasyCamera.start(this, optionsCamera, resultScan)
 ```
+
+| Attributes    | Type    | Note                                                     |
+| ------------- | ------- | -------------------------------------------------------- |
+| count         | Int     | Number of captured images.                               |
+| path          | String  | Folder where the images are saved. pictures/customFolder |
+| flash         | Flash   | Control the flash of your implementation.                |
+| isFrontFacing | Boolean | Turn on the front camera by default.                     |
+| ratio         | Ration  | Control the dimensions of your captured image.           |
+
+## Thanks to
+  - [Glide]
+  - [CameraX]
+  - [Coroutines]
+
+## License
+Licensed under MIT, [click here for the full license](/LICENSE).
+
+## Author & support
+This project was created by [AHRSOFT](https://www.ahrsoft.dev/).
+
+> If you appreciate my work, consider buying me a cup of :coffee: to keep me recharged :metal: by [PayPal](https://paypal.me/AlfredoHdez1709)
+
+
+[Glide]: <https://github.com/bumptech/glide>
+[CameraX]: <https://developer.android.com/training/camerax>
+[Coroutines]: <https://developer.android.com/kotlin/coroutines>
