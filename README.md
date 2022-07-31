@@ -1,4 +1,4 @@
-# EasyCameraAndGallery 0.5 beta version 
+# EasyCameraAndGallery
 
 
 |      Get Permission       |        Home Camera        |       Select photo        |        Send result        |
