@@ -7,20 +7,25 @@ import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import dev.ahrsoft.easycameraandgallery.databinding.ImagePickerListCameraBinding
 
-class GalleryAdapter(private val context : Context, private val imageList : List<ImageModel>) : RecyclerView.Adapter<GalleryAdapter.GalleryHolder>() {
+class GalleryAdapter(private val context : Context) : RecyclerView.Adapter<GalleryAdapter.GalleryHolder>() {
+
+    private var imageList: List<ImageModel>? = null
+    fun getGallery(imageList: List<ImageModel>){
+        this.imageList = imageList
+    }
 
     class GalleryHolder(private val binding: ImagePickerListCameraBinding) : RecyclerView.ViewHolder(binding.root){
         fun bind(context: Context,imageModel: ImageModel){
             with(binding){
                 Glide.with(context)
-                    .load(imageModel.image)
+                    .load(imageModel.uri)
                     .into(imagePickerCamera)
                 checkBoxPickerCamera.isChecked = imageModel.isSelected
             }
         }
     }
 
-    override fun getItemCount(): Int = imageList.size
+    override fun getItemCount(): Int = imageList?.size ?: 0
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): GalleryHolder {
         val itembinding = ImagePickerListCameraBinding.inflate(LayoutInflater.from(parent.context),parent,false)
@@ -28,8 +33,10 @@ class GalleryAdapter(private val context : Context, private val imageList : List
     }
 
     override fun onBindViewHolder(holder: GalleryHolder, position: Int) {
-        val imageModel = imageList[position]
-        holder.bind(context, imageModel)
+        val imageModel = imageList?.get(position)
+        if (imageModel != null) {
+            holder.bind(context, imageModel)
+        }
         holder.itemView.setOnClickListener {
             onItemClickListener?.onItemClick(position)
         }

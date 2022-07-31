@@ -4,14 +4,12 @@ import android.os.Parcelable
 import kotlinx.parcelize.Parcelize
 import java.io.Serializable
 
-
 data class OptionsCamera(
     var count : Int = 1,
     var path : String = "EasyCamera/",
     var flash: Flash = Flash.Auto,
     var isFrontFacing : Boolean = false,
     var ratio : Ratio = Ratio.RATIO_AUTO,
-    var galleryCount : Int = 0
 ) : Serializable
 
 @Parcelize

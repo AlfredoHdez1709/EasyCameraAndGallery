@@ -12,7 +12,7 @@
 
     <application>
         <activity
-            android:name=".CameraActivity"
+            android:name=".camera.CameraActivity"
             android:exported="false" />
     </application>
 

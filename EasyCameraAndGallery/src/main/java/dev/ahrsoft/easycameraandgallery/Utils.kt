@@ -73,7 +73,7 @@ class Utils(private val activity: Activity) {
         }
     }
 
-    fun getScreenHeight(): Int {
+    private fun getScreenHeight(): Int {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             val windowMetrics = activity.windowManager.currentWindowMetrics
             val bounds: Rect = windowMetrics.bounds

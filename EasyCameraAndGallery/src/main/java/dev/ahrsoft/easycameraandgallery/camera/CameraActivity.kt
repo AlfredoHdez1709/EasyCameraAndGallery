@@ -1,29 +1,20 @@
-package dev.ahrsoft.easycameraandgallery
+package dev.ahrsoft.easycameraandgallery.camera
 
 import android.annotation.SuppressLint
 import android.app.Activity
-import android.content.ContentResolver
-import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.database.Cursor
-import android.graphics.Rect
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.os.Environment
-import android.provider.DocumentsContract
 import android.provider.MediaStore
-import android.util.DisplayMetrics
-import android.util.Log
+import android.provider.Settings
 import android.view.Surface.ROTATION_0
 import android.view.View
-import android.view.WindowInsets
 import android.webkit.MimeTypeMap
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -32,71 +23,121 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.core.net.toFile
+import androidx.core.view.isVisible
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.bumptech.glide.util.Util
 import dev.ahrsoft.easycameraandgallery.Constant.FILENAME
 import dev.ahrsoft.easycameraandgallery.Constant.PHOTO_EXTENSION
-import dev.ahrsoft.easycameraandgallery.Constant.RATIO_16_9_VALUE
-import dev.ahrsoft.easycameraandgallery.Constant.RATIO_4_3_VALUE
 import dev.ahrsoft.easycameraandgallery.Constant.REQUEST_CODE_PERMISSIONS
 import dev.ahrsoft.easycameraandgallery.Constant.REQUIRED_PERMISSIONS
-import dev.ahrsoft.easycameraandgallery.Constant.TAG
 import dev.ahrsoft.easycameraandgallery.EasyCamera.IMAGE_RESULTS
+import dev.ahrsoft.easycameraandgallery.Flash
+import dev.ahrsoft.easycameraandgallery.OptionsCamera
+import dev.ahrsoft.easycameraandgallery.R
+import dev.ahrsoft.easycameraandgallery.Utils
+import dev.ahrsoft.easycameraandgallery.commons.CameraFlipperState
 import dev.ahrsoft.easycameraandgallery.databinding.ActivityCameraBinding
 import dev.ahrsoft.easycameraandgallery.gallery.GalleryAdapter
 import dev.ahrsoft.easycameraandgallery.gallery.ImageModel
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.min
 
 
-class CameraActivity : AppCompatActivity() {
+class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
 
+    private lateinit var binding: ActivityCameraBinding
+    private lateinit var viewModel: CameraViewModel
+    private lateinit var optionsCamera: OptionsCamera
+    private lateinit var layoutManager: LinearLayoutManager
+    private val imageList = arrayListOf<ImageModel>()
+    private lateinit var adapter: GalleryAdapter
+    private lateinit var resultGallery: ActivityResultLauncher<Intent>
+    private lateinit var utils: Utils
+
+    //camera
     private var cameraProvider: ProcessCameraProvider? = null
     private var lensFacing: Int = CameraSelector.LENS_FACING_BACK
     private var flashMode: Int = ImageCapture.FLASH_MODE_OFF
     private var preview: Preview? = null
     private var imageCapture: ImageCapture? = null
     private lateinit var outputDirectory: File
-    private lateinit var binding: ActivityCameraBinding
-    private val listSelectImages = ArrayList<String>()
-    private lateinit var optionsCamera: OptionsCamera
-    private val imageList = arrayListOf<ImageModel>()
-    private val imageSelected = arrayListOf<ImageModel>()
-    private lateinit var adapter: GalleryAdapter
-    private lateinit var resultGallery: ActivityResultLauncher<Intent>
-    private lateinit var utils: Utils
-
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        supportActionBar?.hide()
-        utils = Utils(this)
         binding = ActivityCameraBinding.inflate(layoutInflater)
-        val view = binding.root
-        setContentView(view)
-        initUI()
-        if (allPermissionsGranted()) {
+        setContentView(binding.root)
+        supportActionBar?.hide()
+        optionsCamera = (intent.getSerializableExtra("options") as? OptionsCamera)!!
+        viewModel = ViewModelProvider(this)[CameraViewModel::class.java]
+        initObserver()
+        openCallback()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        initCameraUI()
+    }
+
+    private fun initCameraUI() {
+        if (allPermissionsGranted()){
+            binding.cameraVfState.displayedChild = CameraFlipperState.SHOW_CAMERA.state
+            initialSettingsCamera()
             startCamera()
-            getAllImageFromGallery()
-        } else {
+            viewModel.getAllPhoto(this)
+        }else{
             ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
     }
 
-    private fun initUI() {
-        optionsCamera = (intent.getSerializableExtra("options") as? OptionsCamera)!!
-        flashModeOptions(optionsCamera.flash)
+    @SuppressLint("NotifyDataSetChanged")
+    private fun initObserver() {
+        viewModel.mutableListPhoto.observe(this){
+            if (it.isNotEmpty()){
+                imageList.clear()
+                imageList.addAll(it)
+                adapter.getGallery(it)
+                isFullSelection()
+                adapter.notifyDataSetChanged()
+            }
+        }
+    }
 
+    private fun isFullSelection() {
+        val listTemp = imageList.filter {
+            it.isSelected
+        }
+        val isFull = listTemp.size == optionsCamera.count
+        with(binding){
+            ibFrontCamera.isVisible = !isFull
+            cameraCaptureButtonCamera.isVisible = !isFull
+            galleryCaptureButtonCamera.isVisible = !isFull
+            fabSendData.isVisible = isFull
+        }
+    }
+
+    private fun initialSettingsCamera() {
+        utils = Utils(this)
+        flashModeOptions(optionsCamera.flash)
         with(binding) {
+
+            adapter = GalleryAdapter(this@CameraActivity)
+            layoutManager = LinearLayoutManager(this@CameraActivity,LinearLayoutManager.HORIZONTAL, false)
+            rvGalleryCamera.layoutManager = layoutManager
+            rvGalleryCamera.adapter = adapter
+            adapter.setOnItemClickListener(this@CameraActivity)
+
             galleryCaptureButtonCamera.setOnClickListener {
                 getPickImageIntent()
             }
             cameraCaptureButtonCamera.setOnClickListener {
                 takePhoto()
+            }
+            cameraBtnPermission.setOnClickListener {
+                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                    data = Uri.fromParts("package",this@CameraActivity.packageName,null)
+                })
             }
             ibFrontCamera.setOnClickListener {
                 if (CameraSelector.LENS_FACING_FRONT == lensFacing) {
@@ -127,13 +168,10 @@ class CameraActivity : AppCompatActivity() {
             }
 
             fabSendData.setOnClickListener {
-                val list = imageSelected.map {
-                    it.image
-                }
-                getListPath(list as ArrayList<String>)
+                getListPath(viewModel.getListPaths(this@CameraActivity) as ArrayList<String>)
             }
         }
-        openCallback()
+
     }
 
     private fun openCallback() {
@@ -147,14 +185,12 @@ class CameraActivity : AppCompatActivity() {
                             for (i in 0 until mClipData!!.itemCount) {
                                 val item = mClipData.getItemAt(i)
                                 val uri = item.uri
-                                val path = utils.getRealPathFromUri(uri)
-                                addImage(path)
+                                viewModel.addImage(uri,null)
                             }
                         } else if (data.data != null) {
                             val uri = data.data
                             if (uri != null) {
-                                val path = utils.getRealPathFromUri(uri)
-                                addImage(path)
+                                viewModel.addImage(uri,null)
                             }
                         }
                     }
@@ -203,106 +239,6 @@ class CameraActivity : AppCompatActivity() {
         }, ContextCompat.getMainExecutor(this))
     }
 
-    private fun hideUI(isCompleteSelect: Boolean) {
-        if (isCompleteSelect) {
-            binding.fabSendData.visibility = View.VISIBLE
-            binding.cameraCaptureButtonCamera.visibility = View.GONE
-            binding.galleryCaptureButtonCamera.visibility = View.GONE
-        } else {
-            binding.fabSendData.visibility = View.GONE
-            binding.cameraCaptureButtonCamera.visibility = View.VISIBLE
-            binding.galleryCaptureButtonCamera.visibility = View.VISIBLE
-        }
-    }
-
-    private val imageCollection: Uri by lazy {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            MediaStore.Images.Media.getContentUri(
-                MediaStore.VOLUME_EXTERNAL
-            )
-        } else {
-            MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-        }
-    }
-
-    private fun getAllImageFromGallery() {
-        imageList.clear()
-        val columns = arrayOf(MediaStore.Images.Media._ID)
-        val orderBy = MediaStore.Images.Media.DATE_ADDED
-
-        val cursor: Cursor = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            val bundle = Bundle()
-            bundle.putInt(
-                ContentResolver.QUERY_ARG_SORT_DIRECTION,
-                ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
-            )
-            if (optionsCamera.galleryCount > 0)
-                bundle.putInt(ContentResolver.QUERY_ARG_LIMIT, optionsCamera.galleryCount)
-
-            contentResolver.query(imageCollection, columns, bundle, null)!!
-        } else {
-            val filter = if (optionsCamera.galleryCount > 0) {
-                "$orderBy DESC LIMIT ${optionsCamera.galleryCount}"
-            } else {
-                orderBy
-            }
-            contentResolver.query(imageCollection, columns, null, null, filter)!!
-        }
-
-        cursor.let { cursor ->
-            val idColumn = cursor.getColumnIndex(MediaStore.Images.Media._ID)
-            while (cursor.moveToNext()) {
-                val id = cursor.getLong(idColumn)
-                val uri =
-                    ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id)
-                val imageModel = ImageModel(image = utils.getRealPathFromUri(uri))
-                utils.getRealPathFromUri(uri).let { imageList.add(imageModel) }
-            }
-        }
-        cursor.close()
-        print(imageList)
-        setImageList()
-    }
-
-    private fun setImageList() {
-        adapter = GalleryAdapter(this, imageList)
-        binding.rvGalleryCamera.layoutManager =
-            LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
-        binding.rvGalleryCamera.adapter = adapter
-        adapter.setOnItemClickListener(object : GalleryAdapter.OnItemClickListener {
-            override fun onItemClick(position: Int) {
-                val imageModel = imageList[position]
-                if (imageModel.isSelected) {
-                    unSelectImage(imageModel, position)
-                } else {
-                    selectImage(imageModel, position)
-                }
-            }
-        })
-    }
-
-    private fun selectImage(imageModel: ImageModel, position: Int) {
-        if (isCompletedSelect()) {
-            hideUI(true)
-        } else {
-            imageSelected.add(imageModel)
-            imageList[position].isSelected = true
-            adapter.notifyItemChanged(position)
-            if (isCompletedSelect()) hideUI(true)
-        }
-    }
-
-    private fun isCompletedSelect(): Boolean {
-        return imageSelected.size >= optionsCamera.count
-    }
-
-    private fun unSelectImage(imageModel: ImageModel, position: Int) {
-        imageSelected.remove(imageModel)
-        imageList[position].isSelected = false
-        adapter.notifyItemChanged(position)
-        hideUI(false)
-    }
-
     private fun takePhoto() {
         outputDirectory = getOutputDirectory()
         var photoFile: File? = null
@@ -334,42 +270,22 @@ class CameraActivity : AppCompatActivity() {
                 )
                 ImageCapture.OutputFileOptions.Builder(photoFile).build()
             }
-
-
         imageCapture?.takePicture(
             outputOptions,
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
-                @SuppressLint("NotifyDataSetChanged")
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-
-                    val path: String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                        utils.getRealPathFromUri(outputFileResults.savedUri!!)
-                    } else {
+                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
                         outputFileResults.savedUri?.let { mediaScanner(it) }
-                        photoFile?.path.toString()
+                        viewModel.addImage(outputFileResults.savedUri, photoFile)
+                    }else{
+                        outputFileResults.savedUri.let { viewModel.addImage(outputFileResults.savedUri, null) }
                     }
-                    listSelectImages.add(path)
-                    addImage(path)
                 }
-
                 override fun onError(exception: ImageCaptureException) {
-                    Log.d(TAG, "onError: ${exception.message}")
+                    throw ImageCaptureException(exception.imageCaptureError, exception.message ?: getString(R.string.unknown_error), exception)
                 }
             })
-    }
-
-    private fun addImage(path: String) {
-        if (isCompletedSelect()) {
-            hideUI(true)
-        } else {
-            val imageModel = ImageModel(image = path, isSelected = true)
-            imageList.add(0, imageModel)
-            imageSelected.add(imageModel)
-            adapter.notifyDataSetChanged()
-            Log.d(TAG, "onImageSaved: $path")
-            if (isCompletedSelect()) hideUI(true)
-        }
     }
 
     private fun mediaScanner(uri: Uri) {
@@ -378,9 +294,7 @@ class CameraActivity : AppCompatActivity() {
             this,
             arrayOf(uri.toFile().absolutePath),
             arrayOf(mimeType)
-        ) { _, uri ->
-            Log.d(TAG, "Imagen capturada fue guardada: $uri")
-        }
+        ) { _, _ -> }
     }
 
     private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
@@ -394,15 +308,9 @@ class CameraActivity : AppCompatActivity() {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (allPermissionsGranted()) {
-                startCamera()
-                getAllImageFromGallery()
+                initCameraUI()
             } else {
-                Toast.makeText(
-                    this,
-                    "Debe proporcionar permisos para accesar al dispositivo.",
-                    Toast.LENGTH_SHORT
-                ).show()
-                finish()
+                binding.cameraVfState.displayedChild = CameraFlipperState.SHOW_PERMISSIONS.state
             }
         }
     }
@@ -431,8 +339,7 @@ class CameraActivity : AppCompatActivity() {
     }
 
     private fun bindCameraUseCases() {
-        val cameraProvider = cameraProvider
-            ?: throw IllegalStateException("Error al iniciar la camara.")
+        val cameraProvider = cameraProvider ?: throw IllegalStateException(getString(R.string.error_start_camera))
         val cameraSelector = CameraSelector.Builder().requireLensFacing(lensFacing).build()
         preview = Preview.Builder()
             .setTargetAspectRatio(utils.aspectRadio(optionsCamera.ratio))
@@ -446,12 +353,11 @@ class CameraActivity : AppCompatActivity() {
             .setFlashMode(flashMode)
             .build()
         cameraProvider.unbindAll()
-
         try {
             cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageCapture)
             preview?.setSurfaceProvider(binding.viewFinderCamera.surfaceProvider)
         } catch (exc: Exception) {
-            throw Exception("Use case fallo", exc)
+            throw Exception(exc.message ?: getString(R.string.unknown_error))
         }
     }
 
@@ -463,7 +369,7 @@ class CameraActivity : AppCompatActivity() {
         return if (path.exists()) path else filesDir
     }
 
-    fun getPickImageIntent() {
+    private fun getPickImageIntent() {
         val intent = Intent(Intent.ACTION_GET_CONTENT)
         intent.type = "image/*"
         intent.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
@@ -475,5 +381,13 @@ class CameraActivity : AppCompatActivity() {
         result.putExtra(IMAGE_RESULTS, list)
         setResult(RESULT_OK, result)
         finish()
+    }
+
+    override fun onItemClick(position: Int) {
+        viewModel.onClickImage(
+            position = position,
+            isSelected = !imageList[position].isSelected,
+            optionsCamera = optionsCamera
+        )
     }
 }
