@@ -1,5 +1,5 @@
 <resources>
-    <string name="tomar_foto">Tomar foto</string>
+    <string name="tomar_foto">Take photo</string>
     <string name="action_permission">Grant permissions</string>
     <string name="message_permissions">For the correct operation it is required that you grant the required permissions to the application.</string>
     <string name="error_start_camera">Failed to start the camera</string>

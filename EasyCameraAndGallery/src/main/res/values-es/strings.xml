@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tomar_foto">Tomar foto</string>
+    <string name="action_permission">Otorgar permisos</string>
+    <string name="message_permissions">Para el correcto funcionamiento se requiere que otorgues los permisos necesarios a la aplicación.</string>
+    <string name="error_start_camera">"Error al iniciar la cámara "</string>
+    <string name="unknown_error">"error desconocido "</string>
+</resources>
