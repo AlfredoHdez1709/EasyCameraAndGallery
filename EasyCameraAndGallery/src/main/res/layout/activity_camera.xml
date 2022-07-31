@@ -127,30 +127,29 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent">
 
-        <com.google.android.material.button.MaterialButton
-            android:id="@+id/camera.btn.permission"
+
+        <TextView
+            android:id="@+id/camera.tv.permission"
+            style="@style/TextAppearance.Material3.BodyLarge"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="32dp"
+            android:layout_marginEnd="32dp"
+            android:gravity="center"
+            android:text="@string/message_permissions"
+            app:layout_constraintBottom_toTopOf="@+id/permission.btn"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent" />
+
+        <Button
+            android:id="@+id/permission.btn"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/action_permission"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            style="@style/ShapeAppearanceOverlay.Material3.Button"/>
-
-        <TextView
-            android:id="@+id/camera.tv.permission"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="32dp"
-            android:layout_marginEnd="32dp"
-            android:layout_marginBottom="16dp"
-            android:text="@string/message_permissions"
-            android:gravity="center"
-            style="@style/TextAppearance.Material3.BodyLarge"
-            app:layout_constraintBottom_toTopOf="@+id/camera.btn.permission"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent" />
+            app:layout_constraintTop_toTopOf="parent" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 

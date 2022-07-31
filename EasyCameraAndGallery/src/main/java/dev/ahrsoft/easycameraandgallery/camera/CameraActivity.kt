@@ -2,7 +2,9 @@ package dev.ahrsoft.easycameraandgallery.camera
 
 import android.annotation.SuppressLint
 import android.app.Activity
+import android.app.AlertDialog
 import android.content.ContentValues
+import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
@@ -12,9 +14,11 @@ import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
+import android.util.Log
 import android.view.Surface.ROTATION_0
 import android.view.View
 import android.webkit.MimeTypeMap
+import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -31,6 +35,7 @@ import dev.ahrsoft.easycameraandgallery.Constant.FILENAME
 import dev.ahrsoft.easycameraandgallery.Constant.PHOTO_EXTENSION
 import dev.ahrsoft.easycameraandgallery.Constant.REQUEST_CODE_PERMISSIONS
 import dev.ahrsoft.easycameraandgallery.Constant.REQUIRED_PERMISSIONS
+import dev.ahrsoft.easycameraandgallery.Constant.TAG
 import dev.ahrsoft.easycameraandgallery.EasyCamera.IMAGE_RESULTS
 import dev.ahrsoft.easycameraandgallery.Flash
 import dev.ahrsoft.easycameraandgallery.OptionsCamera
@@ -71,12 +76,13 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
         supportActionBar?.hide()
         optionsCamera = (intent.getSerializableExtra("options") as? OptionsCamera)!!
         viewModel = ViewModelProvider(this)[CameraViewModel::class.java]
+        initCameraUI()
         initObserver()
         openCallback()
     }
 
-    override fun onResume() {
-        super.onResume()
+    override fun onRestart() {
+        super.onRestart()
         initCameraUI()
     }
 
@@ -133,11 +139,6 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
             }
             cameraCaptureButtonCamera.setOnClickListener {
                 takePhoto()
-            }
-            cameraBtnPermission.setOnClickListener {
-                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    data = Uri.fromParts("package",this@CameraActivity.packageName,null)
-                })
             }
             ibFrontCamera.setOnClickListener {
                 if (CameraSelector.LENS_FACING_FRONT == lensFacing) {
@@ -310,9 +311,23 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
             if (allPermissionsGranted()) {
                 initCameraUI()
             } else {
-                binding.cameraVfState.displayedChild = CameraFlipperState.SHOW_PERMISSIONS.state
+               dialogPermission()
             }
         }
+    }
+
+    private fun dialogPermission() {
+        val builder = AlertDialog.Builder(this).apply {
+            setTitle(getString(R.string.action_permission))
+            setMessage(getString(R.string.message_permissions))
+            setCancelable(false)
+        }.setPositiveButton(getString(android.R.string.ok)) { dialog, id ->
+            startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                data = Uri.fromParts("package",baseContext.packageName,null)
+            })
+        }
+
+        builder.show()
     }
 
     private fun hasBackCamera(): Boolean {
