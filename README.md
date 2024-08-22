@@ -19,6 +19,17 @@ maven { url 'https://jitpack.io' }
 implementation 'com.github.AlfredoHdez1709:EasyCameraAndGallery:{version}'
 ```
 
+Gradle Kotlin
+
+**Step 1.** Add it in your root settings.gradle.kts at the end of repositories:
+```gradle
+maven { url = uri("https://jitpack.io") }
+```
+**Step 2.** Add the dependency
+```gradle
+implementation ("com.github.AlfredoHdez1709:EasyCameraAndGallery:{version}")
+```
+
 ## Basic implementation
 
 Generate call result from an activity
