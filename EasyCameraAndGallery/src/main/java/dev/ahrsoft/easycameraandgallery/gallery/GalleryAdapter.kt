@@ -12,6 +12,7 @@ class GalleryAdapter(private val context : Context) : RecyclerView.Adapter<Galle
     private var imageList: List<ImageModel>? = null
     fun getGallery(imageList: List<ImageModel>){
         this.imageList = imageList
+        notifyDataSetChanged()
     }
 
     class GalleryHolder(private val binding: ImagePickerListCameraBinding) : RecyclerView.ViewHolder(binding.root){

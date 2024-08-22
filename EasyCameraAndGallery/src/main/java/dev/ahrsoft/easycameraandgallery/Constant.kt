@@ -1,6 +1,8 @@
 package dev.ahrsoft.easycameraandgallery
 
 import android.Manifest
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 object Constant {
     const val TAG = "CameraAndGallery"
@@ -13,5 +15,12 @@ object Constant {
         Manifest.permission.WRITE_EXTERNAL_STORAGE,
         Manifest.permission.READ_EXTERNAL_STORAGE
     )
+
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    val REQUIRED_PERMISSIONS_TIRAMISU = arrayOf(
+        Manifest.permission.CAMERA,
+        Manifest.permission.READ_MEDIA_IMAGES
+    )
+
     const val REQUEST_CODE_PERMISSIONS = 10
 }
