@@ -4,25 +4,25 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.ContentValues
-import android.content.DialogInterface
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.media.MediaScannerConnection
 import android.net.Uri
 import android.os.Build
+import android.os.Build.VERSION
 import android.os.Bundle
 import android.os.Environment
 import android.provider.MediaStore
 import android.provider.Settings
-import android.util.Log
 import android.view.Surface.ROTATION_0
-import android.view.View
 import android.webkit.MimeTypeMap
-import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.camera.core.*
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -30,12 +30,11 @@ import androidx.core.net.toFile
 import androidx.core.view.isVisible
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.bumptech.glide.util.Util
 import dev.ahrsoft.easycameraandgallery.Constant.FILENAME
 import dev.ahrsoft.easycameraandgallery.Constant.PHOTO_EXTENSION
 import dev.ahrsoft.easycameraandgallery.Constant.REQUEST_CODE_PERMISSIONS
 import dev.ahrsoft.easycameraandgallery.Constant.REQUIRED_PERMISSIONS
-import dev.ahrsoft.easycameraandgallery.Constant.TAG
+import dev.ahrsoft.easycameraandgallery.Constant.REQUIRED_PERMISSIONS_TIRAMISU
 import dev.ahrsoft.easycameraandgallery.EasyCamera.IMAGE_RESULTS
 import dev.ahrsoft.easycameraandgallery.Flash
 import dev.ahrsoft.easycameraandgallery.OptionsCamera
@@ -47,7 +46,7 @@ import dev.ahrsoft.easycameraandgallery.gallery.GalleryAdapter
 import dev.ahrsoft.easycameraandgallery.gallery.ImageModel
 import java.io.File
 import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 
 class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
@@ -74,16 +73,15 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
         binding = ActivityCameraBinding.inflate(layoutInflater)
         setContentView(binding.root)
         supportActionBar?.hide()
-        optionsCamera = (intent.getSerializableExtra("options") as? OptionsCamera)!!
+        optionsCamera = if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getSerializableExtra("options", OptionsCamera::class.java) as OptionsCamera
+        }else{
+            intent.getSerializableExtra("options") as OptionsCamera
+        }
         viewModel = ViewModelProvider(this)[CameraViewModel::class.java]
         initCameraUI()
         initObserver()
         openCallback()
-    }
-
-    override fun onRestart() {
-        super.onRestart()
-        initCameraUI()
     }
 
     private fun initCameraUI() {
@@ -93,7 +91,7 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
             startCamera()
             viewModel.getAllPhoto(this)
         }else{
-            ActivityCompat.requestPermissions(this, REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
+            ActivityCompat.requestPermissions(this, if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) REQUIRED_PERMISSIONS_TIRAMISU else REQUIRED_PERMISSIONS, REQUEST_CODE_PERMISSIONS)
         }
     }
 
@@ -244,7 +242,7 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
         outputDirectory = getOutputDirectory()
         var photoFile: File? = null
         val outputOptions: ImageCapture.OutputFileOptions =
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            if (VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 val contentValues = ContentValues().apply {
                     put(
                         MediaStore.MediaColumns.DISPLAY_NAME, SimpleDateFormat(
@@ -276,7 +274,7 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
             ContextCompat.getMainExecutor(this),
             object : ImageCapture.OnImageSavedCallback {
                 override fun onImageSaved(outputFileResults: ImageCapture.OutputFileResults) {
-                    if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q){
+                    if (VERSION.SDK_INT < Build.VERSION_CODES.Q){
                         outputFileResults.savedUri?.let { mediaScanner(it) }
                         viewModel.addImage(outputFileResults.savedUri, photoFile)
                     }else{
@@ -298,8 +296,16 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
         ) { _, _ -> }
     }
 
-    private fun allPermissionsGranted() = REQUIRED_PERMISSIONS.all {
-        ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+    private fun allPermissionsGranted() : Boolean {
+        return if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            REQUIRED_PERMISSIONS_TIRAMISU.all {
+                ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+            }
+        }else {
+            REQUIRED_PERMISSIONS.all {
+                ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
+            }
+        }
     }
 
     override fun onRequestPermissionsResult(
