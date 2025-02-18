@@ -68,6 +68,18 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
     private var imageCapture: ImageCapture? = null
     private lateinit var outputDirectory: File
 
+    private val requestPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val allPermissionsGranted = permissions.entries.all { it.value }
+        if (allPermissionsGranted) {
+            initCameraUI()
+
+        } else {
+            dialogPermission()
+        }
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityCameraBinding.inflate(layoutInflater)
@@ -297,28 +309,21 @@ class CameraActivity : AppCompatActivity(), GalleryAdapter.OnItemClickListener {
     }
 
     private fun allPermissionsGranted() : Boolean {
-        return if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            REQUIRED_PERMISSIONS_TIRAMISU.all {
-                ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-            }
-        }else {
-            REQUIRED_PERMISSIONS.all {
-                ContextCompat.checkSelfPermission(baseContext, it) == PackageManager.PERMISSION_GRANTED
-            }
+        val permissionsToRequest = if (VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            REQUIRED_PERMISSIONS_TIRAMISU.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }.toTypedArray()
+        } else {
+            REQUIRED_PERMISSIONS.filter {
+                ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
+            }.toTypedArray()
         }
-    }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<String>, grantResults:
-        IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == REQUEST_CODE_PERMISSIONS) {
-            if (allPermissionsGranted()) {
-                initCameraUI()
-            } else {
-               dialogPermission()
-            }
+        return if (permissionsToRequest.isNotEmpty()) {
+            requestPermissionLauncher.launch(permissionsToRequest)
+            false
+        } else {
+            true
         }
     }
 
